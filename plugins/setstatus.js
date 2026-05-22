@@ -87,7 +87,13 @@ bot(
     }
     const groupJid = parsedJid(match)
     if (groupJid.length === 0) {
+      if (!message.isGroup) {
+        return await message.send('Use this in a group, or pass a group JID: `.gstatus <jid>`')
+      }
       const participants = await message.groupMetadata(message.jid)
+      if (!participants) {
+        return await message.send('Could not fetch group metadata.')
+      }
       const isImAdmin = await isAdmin(participants, message.participant)
       if (!isImAdmin) {
         return await message.send('You are not admin')
@@ -97,6 +103,10 @@ bot(
       for (const jid of groupJid) {
         if (!isGroup(jid)) continue
         const participants = await message.groupMetadata(jid)
+        if (!participants) {
+          await message.send(`Could not fetch group metadata for @${jid}`, { contextInfo: { mentionedJid: [jid] } })
+          continue
+        }
         const isImAdmin = await isAdmin(participants, message.participant)
         if (!isImAdmin) {
           await message.send(`You are not admin at @${jid}`, { contextInfo: { mentionedJid: [jid] } })
